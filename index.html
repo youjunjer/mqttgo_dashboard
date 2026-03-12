@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="MQTTGO.io 網頁服務">
+    <title>MQTTGO.io 網頁服務</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/foundation.css">
+    <link rel="stylesheet" href="css/jquery.minicolors.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css">
+</head>
+<body class="notconnected">
+<div id="header">
+    <div>
+        <a href="https://mqttgo.vip"><img id="headerlogo" src="assets/MQTTGo_logo.svg" alt"NMKingMQ Logo" title="MQTTGO" style="height: 80px"></a>     
+    </div>
+</div>
+<div id="content" class="row">
+<div id="connection" class="row large-12 columns">
+
+    <div class="large-4 columns conniTop">
+        <h3>連線伺服器 Connect server</h3>
+    </div>
+
+    <div class="large-1 columns conniStatus">
+        <div id="connectionStatus"></div>
+    </div>
+
+    <div class="large-2 columns conniArrow">
+        <a class="small bottom conniArrow" onclick="websocketclient.render.toggle('conni');">
+            <div class="icon-arrow-chevron"></div>
+        </a>
+    </div>
+    <div class="large-12 columns" id="conniMain">
+        <div class="panel">
+            <div class="row">
+                <form class="custom">
+                    <div class="large-3 columns">
+                        <label>MQTT Broker 郵局</label>
+                        <input id="urlInput" type="text" value="MQTTGO.io" disabled/>
+                    </div>
+
+                    <div class="large-2 columns">
+                        <label>WSS Port</label>
+                        <input id="portInput" type="text" value="8084" disabled/>
+                    </div>
+					
+					<div class="large-2 columns">
+                        <label>MQTT Port</label>
+                        <input id="MQTTInput" type="text" value="1883" disabled/>
+                    </div>
+
+                    <div class="large-3 columns">
+                        <label>ClientID 編號</label>
+                        <input id="clientIdInput" type="text" disabled/>
+                    </div>
+
+                    <div class="large-2 columns">
+                        <a id="connectButton" class="small button" onclick="websocketclient.connect();">連線</a>
+                    </div>
+
+                    <div class="large-2 columns">
+                        <a id="disconnectButton" class="small button"
+                           onclick="websocketclient.disconnect();">中斷</a>
+                    </div>
+ 
+                    <div class="large-3 columns">
+                        <a id="dashboardButton" class="small button" style="display: none;"
+                            onclick="websocketclient.downloadDashboard();">Dashboard儲存</a>                            
+                    </div>
+                    <div class="large-6 columns">
+                        (Dashboard技術Power By 法蘭斯)                         
+                    </div>
+
+
+
+                    <!-- <div class="large-2 columns">
+                        <a id="mapsButton" href="#mapsdata" class="small button" style="display: none;">設定地圖座標</a>
+                    </div>
+                    <div style="display:none;">
+                        <div id="mapsdata">
+                            <form class="custom">
+                                <div class="row large-12 columns">
+                                    <div class="large-6 columns">
+                                        <label>緯度</label>
+                                        <input id="mapsValueLatitude" type="text" value="0">
+                                    </div>
+                                    <div class="large-6 columns">
+                                        <label>經度</label>
+                                        <input id="mapsValueLongitude" type="text" value="0">
+                                    </div>
+                                </div>
+                                <div class="row large-12 columns">
+                                    <div class="large-4 columns">
+                                        <a class="small button" id="mapsSettingButton" onclick="if(websocketclient.settingMaps($('#mapsValueLatitude').val(),$('#mapsValueLongitude').val())){$.fancybox.close();}">確定?</a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div> -->
+
+					<div style="display:none" class="large-1 columns">
+                        <label>SSL</label>
+                        <input id="sslInput" type="checkbox" checked />
+                    </div>
+
+                    <div style="display:none" class="large-2 columns">
+                        <label>Keep Alive</label>
+                        <input id="keepAliveInput" type="text" value="60"/>
+                    </div>
+
+                    <div style="display:none" class="large-2 columns">
+                        <label>Clean Session</label>
+                        <input class="checky" id="cleanSessionInput" type="checkbox" checked="checked" disabled="disabled"/>
+                    </div>
+
+                    <div style="display:none" class="large-2 columns">
+                        <label>Last-Will Topic</label>
+                        <input id="lwTopicInput" type="text"/>
+                    </div>
+
+                    <div style="display:none" class="large-2 columns">
+                        <label>Last-Will QoS</label>
+                        <select id="lwQosInput">
+                            <option>0</option>
+                            <option>1</option>
+                            <option>2</option>
+                        </select>
+                    </div>
+
+                    <div style="display:none" class="large-2 columns">
+                        <label>Last-Will Retain</label>
+                        <input class="checky" id="LWRInput" type="checkbox"/>
+                    </div>
+
+                    <div style="display:none" class="large-2 columns">
+                        <label>Last-Will Messsage</label>
+                        <textarea id="LWMInput"></textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="empty"></div>
+<div id="publish-sub" class="row large-12 columns">
+    <div class="columns large-6">
+        <div class="large-9 columns publishTop">
+            <h3>推播 Publish</h3>
+        </div>
+
+        <div class="large-3 columns publishArrow">
+            <a class="small bottom publishArrow" onclick="websocketclient.render.toggle('publish');">
+                <div class="icon-arrow-chevron"></div>
+            </a>
+        </div>
+
+        <div class="large-12 columns" id="publishMain">
+
+            <!-- Grid Example -->
+            <div class="row panel" id="publishPanel">
+                <div class="large-12 columns">
+                    <form class="custom">
+                        <div class="row">
+                            <div class="large-6 columns">
+                                <label>Topic</label>
+                                <input id="publishTopic" type="text" value="YourTopic/class/溫度">
+                            </div>
+                            <div class="large-3 columns">
+                                <label for="publishQoSInput">QoS</label>
+                                <select id="publishQoSInput" class="small">
+                                    <option>0</option>
+                                    <option>1</option>
+                                    <option>2</option>
+                                </select>
+                            </div>
+                            <div class="large-3 columns">
+                                <label>Retain</label>
+                                <input id="publishRetain" type="checkbox">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="large-9 columns">
+                                <label>訊息</label>
+                                <textarea id="publishPayload"></textarea>
+                            </div>
+							<div class="large-3 columns">
+                                <a class="small button" id="publishButton" onclick="websocketclient.publish($('#publishTopic').val(),$('#publishPayload').val(),parseInt($('#publishQoSInput').val(),10),$('#publishRetain').is(':checked'))">Publish</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+		
+		<div class="empty"></div>
+
+    </div>
+
+    <div class="columns large-6">
+
+        <div class="large-8 columns subTop">
+            <h3>訂閱 Subscriptions</h3>
+        </div>
+
+        <div class="large-3 columns subArrow">
+            <a class="small bottom subArrow" onclick="websocketclient.render.toggle('sub');">
+                <div class="icon-arrow-chevron"></div>
+            </a>
+        </div>
+        <div class="large-12 columns" id="subMain">
+            <div class="row panel">
+                <div class="large-12 columns">
+
+                    <a id="addSubButton" href="#data" class="small button addSubButton">Add Subscription(新增訂閱主題)</a>
+
+                    <div style="display:none;">
+                        <div id="data">
+                            <form class="custom">
+                                <div class="row large-12 columns">
+                                    <div class="large-4 columns">
+                                        <label>Color</label>
+                                        <input class="color" id="colorChooser" type="hidden">
+                                    </div>
+                                    <div class="large-5 columns">
+                                        <label for="QoSInput">QoS</label>
+                                        <select id="QoSInput" class="small">
+                                            <option>2</option>
+                                            <option>1</option>
+                                            <option>0</option>
+                                        </select>
+                                    </div>
+                                    <div class="large-3 columns">
+                                        <a class="small button" id="subscribeButton"
+                                           onclick="if(websocketclient.subscribe($('#subscribeTopic').val(),parseInt($('#QoSInput').val()),$('#colorChooser').val().substring(1),$('#chartInput').val(),$('#chartName').val(),$('#chartValueRange').val(),$('#chartValueUnit').val())){$.fancybox.close();}">Subscribe</a>
+                                    </div>
+                                </div>
+                                
+                                <div class="row large-12 columns">
+                                    <div class="large-12 columns">
+                                        <label>Topic</label>
+                                        <input id="subscribeTopic" type="text" value="YourTopic/class/溫度">
+                                    </div>
+                                </div>
+
+                                <div class="row large-12 columns">
+                                    <div class="large-3 columns">
+                                        <label for="chartInput">儀表板</label>
+                                        <select id="chartInput" class="medium" onchange="websocketclient.chartInputOnChange()">
+                                            <option>無</option>
+                                            <option>圖片</option>
+                                            <option>圖片(base64)</option>
+                                            <option>文字方塊</option>
+                                            <option>甜甜圈圖</option>
+                                            <option>溫度圖</option>
+                                            <option>類比圖</option>
+                                            <option>水位圖</option>
+                                            <option>折線圖</option>
+                                            <option>長條圖</option>
+                                            <option>滑動開關</option>
+                                        </select>
+                                    </div>
+                                    <div class="large-3 columns">
+                                        <label>名稱 (不可重複)</label>
+                                        <input id="chartName" type="text" value="溫度" disabled>
+                                    </div>
+                                    <!-- <div class="large-2 columns">
+                                        <label>座標 (left,top)</label>
+                                        <input id="chartCoordinate" type="text" value="0,0" disabled>
+                                    </div> -->
+                                    <!-- <div class="large-2 columns">
+                                        <label>大小 (width,height)</label>
+                                        <input id="chartValueSize" type="text" value="0,0" disabled>
+                                    </div> -->
+                                    <div class="large-3 columns">
+                                        <label>數值區間 (min,max)</label>
+                                        <input id="chartValueRange" type="text" value="0,100" disabled>
+                                    </div>
+                                    <div class="large-3 columns">
+                                        <label>單位</label>
+                                        <input id="chartValueUnit" type="text" value="°C" disabled>
+                                    </div>
+									<div class="large-12 columns">
+									 &nbsp;
+									</div>
+									<div class="large-12 columns">
+									 &nbsp;
+									</div>
+									<div class="large-12 columns">
+									 &nbsp;
+									</div>									
+									
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <ul id="innerEdit" class="disc">
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+    
+		<div msg>
+        <div class="large-9 columns messagesTop">
+            <h3>訊息 (可按箭號隱藏本欄)</h3>
+        </div>
+
+        <div class="large-3 columns messagesArrow">
+            <a class="small bottom messagesArrow" onclick="websocketclient.render.toggle('messages');">
+                <div class="icon-arrow-chevron"></div>
+            </a>
+        </div>
+
+        <div class="large-12 columns" id="messagesMain">
+
+            <!-- Grid Example -->
+            <div class="row panel">
+                <div class="large-12 columns">
+                    <form class="custom">
+                        <!--<div class="row">-->
+                        <!--<div class="large-10 columns">-->
+                        <!--<label>Filter</label>-->
+                        <!--<input id="filterString" type="text">-->
+                        <!--</div>-->
+
+                        <!--<div class="large-2 columns">-->
+                        <!--<a class="small button" id="filterButton"-->
+                        <!--onclick="websocketclient.filter($('#filterString').val())">Filter</a>-->
+                        <!--</div>-->
+                        <!--</div>-->
+
+                    </form>
+                    <div class="row">
+                        <ul id="messEdit" class="disc">
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+		</div>
+	
+	
+	</div>
+
+    <div class="empty"></div>	
+	<div class="large-2 columns dashboardTop">
+    <h3>儀表板</h3>
+    </div>
+	<div class="large-3 columns">
+	<a id="dashboardButton" class="small button" 
+		onclick="websocketclient.downloadDashboard();">Dashboard儲存</a>                            
+    </div>
+	<div class="large-7 columns dashboardArrow">
+	<a class="small bottom dashboardArrow" onclick="websocketclient.render.toggle('dashboard');">
+		<div class="icon-arrow-chevron"></div>
+	</a>	    
+	</div>
+	
+	<div id="dashboardMain" >
+    <iframe id="dashboardIframe" style="border:0px" class="panel"></iframe>
+	</div>
+	
+    <div class="empty"></div>
+	<div class="large-10 columns mapTop">
+    <h3>地圖(前綴gps@緯度,經度)</h3>
+    </div>
+	<div class="large-2 columns mapArrow">
+	<a class="small bottom mapArrow" onclick="websocketclient.render.toggle('map');">
+		<div class="icon-arrow-chevron"></div>
+	</a>	    
+	</div>
+	<div  id="mapMain">
+    <iframe id="mapsIframe" style="border:0px" class="panel"></iframe>
+	</div>
+
+</div>
+</div>
+<div class="empty"></div>
+<div class="empty"></div>
+<div class="empty"></div>
+<div class="empty"></div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/1.3.1/lodash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.forms.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.1.0/moment.min.js"></script>
+<script src="js/jquery.minicolors.min.js"></script>
+<script src="js/mqttws31.js"></script>
+<script src="js/encoder.js"></script>
+<script src="js/app.js"></script>
+
+<!-- fustyles 的儀表板 Lib -->
+<!-- <script src='https://fustyles.github.io/webduino/SpBlocklyJS/chart_20220723/Chart.min.js'></script>
+<script src='https://fustyles.github.io/webduino/SpBlocklyJS/chart_20220723/pretty-doughtnut.js'></script>
+<script src='https://fustyles.github.io/webduino/SpBlocklyJS/chart_20220723/jquery.tempgauge.js'></script>
+<script src='https://fustyles.github.io/webduino/SpBlocklyJS/chart_20220723/jquery.simplegauge.js'></script>
+<script src='https://fustyles.github.io/webduino/SpBlocklyJS/chart_20220723/waterbubble.js'></script>
+<link href='https://fustyles.github.io/webduino/SpBlocklyJS/chart_20220723/jquery.simplegauge.css' type='text/css' rel='stylesheet'> -->
+
+
+
+<script>
+var input = document.getElementById("subscribeTopic");
+input.addEventListener("keypress", function(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.getElementById("subscribeButton").click();
+  }
+});
+    function randomString(length) {
+        var text = "";
+        var possible = "0123456789";
+        for (var i = 0; i < length; i++)
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        return text;
+    }
+
+    $(document).foundation();
+    $(document).ready(function () {
+
+        $('#clientIdInput').val('MQTTGO-' + randomString(10));
+
+        $('#colorChooser').minicolors();
+
+        $("#addSubButton").fancybox({
+            'maxWidth': 800,
+            'afterShow': function () {
+                var rndColor = websocketclient.getRandomColor();
+                $("#colorChooser").minicolors('value', rndColor);
+            }
+        });
+
+        // $("#mapsButton").fancybox({
+        //     'maxWidth':800,
+        // });
+
+        //websocketclient.render.toggle('publish');
+        websocketclient.render.toggle('messages');
+        //websocketclient.render.toggle('sub');
+    });
+</script>
+</body>
+</html>
