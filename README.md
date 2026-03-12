@@ -25,6 +25,12 @@
 - 長條圖
 - 滑動開關
 
+## 案例畫面
+
+以下為實際 Dashboard 顯示範例，包含溫度圖、甜甜圈圖、折線圖、文字方塊與滑動開關：
+
+![Dashboard 範例](assets/dashboard-example.jpg)
+
 ## 文字方塊
 
 `文字方塊` 用於顯示最新收到的 Topic 內容。

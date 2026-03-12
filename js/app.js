@@ -572,7 +572,7 @@ var websocketclient = {
         return `
         waterbubble({
             id: "${name}",
-            name: '水位',
+            name: "${name}",
             radius: 100,
             left: ${parseInt(left)},
             top: ${parseInt(top)},
@@ -641,32 +641,70 @@ var websocketclient = {
 
     'createLineChartJS': function (name, color, unit, left, top, min, max, width, height) {
         return `
-        var config = {
-            id: '${name}',
-            type: "line",
-            data: {
-                labels: [],
-                datasets: [{ label: '${name}', data: [], borderColor: '#${color}', backgroundColor: '#000000' }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: "top" },
-                    title: { display: true, text: '${name}圖表' }
+        ;(function() {
+            window.__mqttLineCharts = window.__mqttLineCharts || {};
+            window.__mqttLineChartMeta = window.__mqttLineChartMeta || {};
+
+            if (!window.__mqttLineChartUpdate) {
+                window.__mqttLineChartUpdate = function(id, label, value, count) {
+                    const chart = window.__mqttLineCharts[id];
+                    if (!chart) return;
+
+                    if (chart.data.labels.length === count) {
+                        chart.data.labels.shift();
+                        chart.data.datasets.forEach(function(ds) { ds.data.shift(); });
+                    }
+
+                    chart.data.labels.push(label);
+                    chart.data.datasets[0].data.push(value);
+                    chart.update();
+                };
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.id = 'mqtt_line_wrapper_${name}';
+            wrapper.style.position = 'absolute';
+            wrapper.style.left = '${parseInt(left)}px';
+            wrapper.style.top = '${parseInt(top)}px';
+            wrapper.style.width = '${parseInt(width)}px';
+            wrapper.style.height = '${parseInt(height)}px';
+
+            const canvas = document.createElement('canvas');
+            canvas.id = 'mqtt_line_canvas_${name}';
+            canvas.width = ${parseInt(width)};
+            canvas.height = ${parseInt(height)};
+            wrapper.appendChild(canvas);
+            document.body.appendChild(wrapper);
+
+            const ctx = canvas.getContext('2d');
+            window.__mqttLineChartMeta['${name}'] = { count: 20 };
+            window.__mqttLineCharts['${name}'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '${name}',
+                        data: [],
+                        borderColor: '#${color}',
+                        backgroundColor: '#000000',
+                        fill: false,
+                        tension: 0
+                    }]
                 },
-                scales: {
-                    yAxes: { title: { display: true, text: '數值' }, ticks: { precision: 0 } },
-                    xAxes: { title: { display: true, text: '時間' } }
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: '${name}圖表' }
+                    },
+                    scales: {
+                        yAxes: { title: { display: true, text: '數值' }, ticks: { precision: 0 } },
+                        xAxes: { title: { display: true, text: '時間' } }
+                    }
                 }
-            },
-            width: ${parseInt(width)},
-            height: ${parseInt(height)},
-            left: ${parseInt(left)},
-            top: ${parseInt(top)},
-            count: 20
-        };
-        linechart(config);
+            });
+        })();
         `
     },
 
@@ -897,7 +935,7 @@ var websocketclient = {
         } else if (chartType === "水位圖") {
             str = `waterbubble({id: "${chartName}", val: (new TextDecoder().decode(payload))});`;
         } else if (chartType === "折線圖") {
-            str = `linechart({id: "${chartName}", data: [(getDatetime(newdate, "time")), new TextDecoder().decode(payload), new TextDecoder().decode(payload)]});`;
+            str = `window.__mqttLineChartUpdate("${chartName}", getDatetime(newdate, "time"), new TextDecoder().decode(payload), 20);`;
         } else if (chartType === "長條圖") {
             str = `barchart({id: "${chartName}", data: [(getDatetime(newdate, "time")), new TextDecoder().decode(payload), null]});`;
         } else if (chartType === "圖片") {
